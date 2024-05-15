@@ -7,10 +7,10 @@ const main = async () => {
     create: {
       username: 'admin',
       email: 'admin@email.com',
-      password: 'admin123',
+      password: 'admin123'
     },
     where: { username: 'admin' },
-    update: {},
+    update: {}
   });
 
   console.log({ user });
