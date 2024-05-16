@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
+import { User } from 'src/users/entities/user.entity';
 
 export class Post implements Post {
-
   @ApiProperty()
   caption: string;
 
@@ -10,4 +11,15 @@ export class Post implements Post {
 
   @ApiProperty({ required: false, nullable: true })
   authorId: number | null;
+
+  @ApiProperty({ required: false, type: User })
+  author?: User;
+
+  constructor({ author, ...data }: Partial<Post>) {
+    Object.assign(this, data);
+
+    if (author) {
+      this.author = new User(author);
+    }
+  }
 }
