@@ -16,10 +16,14 @@ export class User implements User {
 
   @ApiProperty()
   @Expose()
+  name: string;
+
+  @ApiProperty()
+  @Expose()
   email: string;
 
   @Exclude()
-  password: string;
+  password?: string;
 
   @ApiProperty()
   @Expose()
@@ -27,9 +31,9 @@ export class User implements User {
 
   @ApiProperty()
   @Expose()
-  createdAt: Date;
+  createdAt?: Date;
 
   @ApiProperty()
   @Expose()
-  updatedAt: Date;
+  updatedAt?: Date;
 }
