@@ -39,6 +39,15 @@ export class PostsController {
     return posts.map((post) => new PostEntity(post));
   }
 
+  @Get('recent')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getRecentPost() {
+    const posts = await this.postsService.getRecentPost();
+    return posts.map((post) => new PostEntity(post));
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

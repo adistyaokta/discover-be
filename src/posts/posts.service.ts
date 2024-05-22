@@ -8,11 +8,21 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   create(data: CreatePostDto) {
+    console.log(data);
     return this.prisma.post.create({ data });
   }
 
   findAll() {
     return this.prisma.post.findMany();
+  }
+
+  getRecentPost() {
+    return this.prisma.post.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 20
+    });
   }
 
   findOne(id: number) {
