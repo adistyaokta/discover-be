@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
 import { User } from 'src/users/entities/user.entity';
 
 export class Post implements Post {

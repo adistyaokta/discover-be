@@ -21,7 +21,20 @@ export class PostsService {
       orderBy: {
         createdAt: 'desc'
       },
-      take: 20
+      take: 20,
+      include: {
+        author: true
+      }
+    });
+  }
+
+  getPostByAuthor(authorId: number) {
+    return this.prisma.post.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 20,
+      where: { authorId }
     });
   }
 

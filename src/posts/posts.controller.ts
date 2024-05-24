@@ -48,6 +48,15 @@ export class PostsController {
     return posts.map((post) => new PostEntity(post));
   }
 
+  @Get('/author/:authorId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getPostByAuthor(@Param('authorId', ParseIntPipe) authorId: number): Promise<PostEntity[]> {
+    const posts = await this.postsService.getPostByAuthor(authorId);
+    return posts.map((post) => new PostEntity(post));
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
