@@ -8,7 +8,6 @@ export class PostsService {
   constructor(private prisma: PrismaService) {}
 
   create(data: CreatePostDto) {
-    console.log(data);
     return this.prisma.post.create({ data });
   }
 
@@ -34,7 +33,10 @@ export class PostsService {
         createdAt: 'desc'
       },
       take: 20,
-      where: { authorId }
+      where: { authorId },
+      include: {
+        author: true
+      }
     });
   }
 
@@ -45,11 +47,26 @@ export class PostsService {
         author: {
           select: {
             username: true,
-            avaUrl: true
+            avaUrl: true,
+            name: true
           }
         }
       }
     });
+  }
+
+  getRandomPost(count: number) {
+    return this.prisma.$queryRaw`
+      SELECT 
+        posts.*, 
+        json_build_object(
+          'name', users.name,
+          'username', users.username
+        ) AS author
+      FROM posts
+      INNER JOIN users ON posts."authorId" = users.id
+      ORDER BY RANDOM()
+      LIMIT ${count}`;
   }
 
   update(id: number, data: UpdatePostDto) {

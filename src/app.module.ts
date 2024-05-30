@@ -6,18 +6,22 @@ import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { ImagesService } from './images/images.service';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true
     }),
+
     PrismaModule,
     UsersModule,
     PostsModule,
-    AuthModule
+    AuthModule,
+    ImagesModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService, ImagesService]
 })
 export class AppModule {}

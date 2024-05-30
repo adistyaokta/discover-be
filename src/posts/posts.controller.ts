@@ -69,6 +69,15 @@ export class PostsController {
     return post;
   }
 
+  @Get('/random/:count')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getRandomPost(@Param('count', ParseIntPipe) count: number): Promise<PostEntity[]> {
+    const randomPosts = (await this.postsService.getRandomPost(count)) as any[];
+    return randomPosts.map((post) => new PostEntity(post));
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
