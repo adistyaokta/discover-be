@@ -19,6 +19,9 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
-  await app.listen(3000);
+  const baseUrl = process.env.HOST;
+  const port = process.env.PORT;
+
+  await app.listen(port, baseUrl);
 }
 bootstrap();

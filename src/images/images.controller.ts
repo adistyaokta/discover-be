@@ -5,17 +5,27 @@ import { extname } from 'node:path';
 import { ImagesService } from './images.service';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import * as fs from 'node:fs';
 
 @Controller('images')
 @ApiTags('images')
 export class ImagesController {
   constructor(private readonly imageService: ImagesService) {}
 
-  @Post('upload')
+  @Post('upload/:folder') // Update the route definition to capture the folder parameter
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: (req, file, cb) => {
+          const folder = req.params.folder;
+          const uploadPath = `./uploads/${folder}`;
+
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+
+          cb(null, uploadPath);
+        },
         filename: (req, file, cb) => {
           const name = file.originalname.split('.')[0];
           const fileExtension = file.originalname.split('.')[1];
@@ -29,28 +39,34 @@ export class ImagesController {
           return cb(null, false);
         }
         cb(null, true);
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024
       }
     })
   )
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+  async uploadImage(@UploadedFile() file: Express.Multer.File, @Param('folder') folder: string) {
     if (!file) {
       throw new BadRequestException('File is not an image');
     }
+    console.log(file);
+
     const filename = file.filename;
-    const path = `./uploads/${filename}`;
+    const path = `./uploads/${folder}/${filename}`;
 
     const uploadedImage = await this.imageService.uploadImage(filename, path);
+    const baseUrl = `${process.env.HOST}:${process.env.PORT}`;
 
     const response = {
       message: 'Image uploaded successfully',
-      filePath: `http://localhost:3000/images/${filename}`,
+      filePath: `http://${baseUrl}/images/${folder}/${filename}`,
       data: uploadedImage
     };
     return response;
   }
 
-  @Get('/:filename')
-  async getPicture(@Param('filename') filename, @Res() res: Response) {
-    res.sendFile(filename, { root: './uploads' });
+  @Get('/:folder/:filename')
+  async getPicture(@Param('folder') folder: string, @Param('filename') filename: string, @Res() res: Response) {
+    res.sendFile(filename, { root: `./uploads/${folder}` });
   }
 }

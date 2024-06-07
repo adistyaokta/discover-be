@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "posts" ALTER COLUMN "comments" DROP DEFAULT,
-ALTER COLUMN "comments" SET DATA TYPE TEXT;
