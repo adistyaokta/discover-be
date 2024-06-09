@@ -49,7 +49,6 @@ export class ImagesController {
     if (!file) {
       throw new BadRequestException('File is not an image');
     }
-    console.log(file);
 
     const filename = file.filename;
     const path = `./uploads/${folder}/${filename}`;
