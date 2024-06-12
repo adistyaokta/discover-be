@@ -48,25 +48,35 @@ export class PostsService {
           select: {
             username: true,
             avaUrl: true,
-            name: true
+            name: true,
+            id: true
           }
         }
       }
     });
   }
 
-  getRandomPost(count: number) {
-    return this.prisma.$queryRaw`
-      SELECT 
-        posts.*, 
-        json_build_object(
-          'name', users.name,
-          'username', users.username
-        ) AS author
-      FROM posts
-      INNER JOIN users ON posts."authorId" = users.id
-      ORDER BY RANDOM()
-      LIMIT ${count}`;
+  // getRandomPost(count: number) {
+  //   return this.prisma.$queryRaw`
+  //     SELECT
+  //       posts.*,
+  //       json_build_object(
+  //         'name', users.name,
+  //         'username', users.username,
+  //         'avaUrl', users.avaUrl
+  //       ) AS author
+  //     FROM posts
+  //     INNER JOIN users ON posts."authorId" = users.id
+  //     ORDER BY RANDOM()
+  //     LIMIT ${count}`;
+  // }
+
+  async searchPosts(query: string) {
+    return this.prisma.post.findMany({
+      where: {
+        OR: [{ author: { contains: query } }, { caption: { contains: query } }]
+      } as any
+    });
   }
 
   update(id: number, data: UpdatePostDto) {

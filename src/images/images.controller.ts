@@ -12,7 +12,7 @@ import * as fs from 'node:fs';
 export class ImagesController {
   constructor(private readonly imageService: ImagesService) {}
 
-  @Post('upload/:folder') // Update the route definition to capture the folder parameter
+  @Post('upload/:folder')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({

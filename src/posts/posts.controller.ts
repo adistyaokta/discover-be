@@ -8,7 +8,8 @@ import {
   Delete,
   ParseIntPipe,
   NotFoundException,
-  UseGuards
+  UseGuards,
+  Query
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -69,14 +70,23 @@ export class PostsController {
     return post;
   }
 
-  @Get('/random/:count')
+  @Get('trending')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity, isArray: true })
-  async getRandomPost(@Param('count', ParseIntPipe) count: number): Promise<PostEntity[]> {
-    const randomPosts = (await this.postsService.getRandomPost(count)) as any[];
-    return randomPosts.map((post) => new PostEntity(post));
+  async searchPosts(@Query('param') query: string): Promise<PostEntity[]> {
+    console.log('aa');
+    return this.postsService.searchPosts(query);
   }
+
+  // @Get('/random/:count')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  // @ApiOkResponse({ type: PostEntity, isArray: true })
+  // async getRandomPost(@Param('count', ParseIntPipe) count: number): Promise<PostEntity[]> {
+  //   const randomPosts = (await this.postsService.getRandomPost(count)) as any[];
+  //   return randomPosts.map((post) => new PostEntity(post));
+  // }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
