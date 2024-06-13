@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,7 +12,13 @@ export class PostsService {
   }
 
   findAll() {
-    return this.prisma.post.findMany();
+    return this.prisma.post.findMany({
+      include: {
+        author: true,
+        likedBy: true,
+        comments: true
+      }
+    });
   }
 
   getRecentPost() {
@@ -22,7 +28,13 @@ export class PostsService {
       },
       take: 20,
       include: {
-        author: true
+        author: true,
+        likedBy: {
+          select: {
+            id: true
+          }
+        },
+        comments: true
       }
     });
   }
@@ -71,11 +83,48 @@ export class PostsService {
   //     LIMIT ${count}`;
   // }
 
-  async searchPosts(query: string) {
+  async searchPosts(s: string) {
     return this.prisma.post.findMany({
       where: {
-        OR: [{ author: { contains: query } }, { caption: { contains: query } }]
-      } as any
+        OR: [
+          {
+            caption: {
+              search: s
+            }
+          },
+          {
+            author: {
+              name: {
+                search: s
+              }
+            }
+          },
+          {
+            author: {
+              username: {
+                search: s
+              }
+            }
+          }
+        ]
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            avaUrl: true,
+            name: true,
+            id: true
+          }
+        }
+      },
+      orderBy: {
+        _relevance: {
+          fields: ['caption'],
+          search: s,
+          sort: 'desc'
+        }
+      }
     });
   }
 
@@ -85,5 +134,52 @@ export class PostsService {
 
   remove(id: number) {
     return this.prisma.post.delete({ where: { id } });
+  }
+
+  async likeUnlike(postId: number) {
+    try {
+      const post = await this.prisma.post.findUnique({ where: { id: postId } });
+      if (!post) {
+        throw new Error('Moment not found');
+      }
+
+      const authorId = post.authorId;
+
+      const user = await this.prisma.user.findUnique({ where: { id: authorId }, include: { likes: true } });
+      if (!user) {
+        throw new Error('User not found!');
+      }
+
+      if (user.likes.some((post) => post.id === postId)) {
+        await this.prisma.user.update({
+          where: { id: authorId },
+          data: {
+            likes: {
+              disconnect: { id: post.id }
+            }
+          }
+        });
+        return {
+          statusCode: 200,
+          message: 'You unliked a post.'
+        };
+      }
+
+      await this.prisma.user.update({
+        where: { id: authorId },
+        data: {
+          likes: {
+            connect: { id: post.id }
+          }
+        }
+      });
+
+      return {
+        status: 200,
+        message: 'You liked a post.'
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Something went wrong');
+    }
   }
 }

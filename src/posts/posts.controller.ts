@@ -49,6 +49,15 @@ export class PostsController {
     return posts.map((post) => new PostEntity(post));
   }
 
+  @Get('trending')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity })
+  async searchPost(@Query('s') s: string) {
+    const posts = await this.postsService.searchPosts(s);
+    return posts;
+  }
+
   @Get('/author/:authorId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -70,13 +79,12 @@ export class PostsController {
     return post;
   }
 
-  @Get('trending')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: PostEntity, isArray: true })
-  async searchPosts(@Query('param') query: string): Promise<PostEntity[]> {
-    console.log('aa');
-    return this.postsService.searchPosts(query);
+  @Post(':postId/like')
+  async likeUnlike(
+    // @Param('postId', ParseIntPipe) userId: number
+    @Param('postId', ParseIntPipe) postId: number
+  ) {
+    return this.postsService.likeUnlike(postId);
   }
 
   // @Get('/random/:count')

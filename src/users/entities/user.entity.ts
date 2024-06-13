@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
+import { Post } from 'src/posts/entities/post.entity';
 
 export class User implements User {
   constructor(partial: Partial<User>) {
@@ -16,7 +17,7 @@ export class User implements User {
 
   @ApiProperty()
   @Expose()
-  name: string;
+  name?: string;
 
   @ApiProperty()
   @Expose()
@@ -27,7 +28,11 @@ export class User implements User {
 
   @ApiProperty()
   @Expose()
-  avaUrl: string;
+  bio?: string;
+
+  @ApiProperty({ name: 'avaUrl' })
+  @Expose()
+  avaUrl?: string;
 
   @ApiProperty()
   @Expose()
@@ -36,4 +41,19 @@ export class User implements User {
   @ApiProperty()
   @Expose()
   updatedAt?: Date;
+
+  @Expose()
+  posts?: Post[];
+
+  @Expose()
+  likes?: Post[];
+
+  @Expose()
+  comments?: Comment[];
+
+  @Expose()
+  following?: User[];
+
+  @Expose()
+  followers?: User[];
 }

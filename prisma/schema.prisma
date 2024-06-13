@@ -5,48 +5,63 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 model User {  
   id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   username String @unique
   name String?
   email String
   password String
+
   bio String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
   avaUrl String?
 
-  posts Post[]
-  likes Like[]
+  posts      Post[]   @relation("user_posts")
+  likes      Post[]   @relation("user_likes")
+  comments   Comment[]
+
+  following  User[]   @relation("user_follows")
+  followers  User[]   @relation("user_follows")
 
   @@map("users")
 }
 
 model Post {
   id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   caption String
   media String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
-  author User? @relation(fields: [authorId], references: [id])
-  authorId Int?
+  
+  author User @relation("user_posts", fields: [authorId], references: [id])
+  authorId Int
 
-  likes Like[]
+  likedBy User[] @relation("user_likes")
+  comments Comment[]
 
   @@map("posts")
 }
 
-model Like {
+model Comment {
   id Int @id @default(autoincrement())
-  post Post @relation(fields: [postId], references: [id])
-  postId Int
-  user User @relation(fields: [userId], references: [id])
-  userId Int
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("likes")
+  content String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+
+  @@map("comments")
+
 }
 
 model Image {
