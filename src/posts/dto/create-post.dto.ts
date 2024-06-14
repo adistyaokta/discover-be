@@ -17,3 +17,9 @@ export class CreatePostDto {
   @ApiProperty()
   authorId: number;
 }
+
+export class CommentDto {
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}

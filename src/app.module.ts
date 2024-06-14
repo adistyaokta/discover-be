@@ -8,7 +8,6 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { ImagesService } from './images/images.service';
 import { ImagesModule } from './images/images.module';
-import { ModelsModule } from './models/models.module';
 
 @Module({
   imports: [
@@ -20,8 +19,7 @@ import { ModelsModule } from './models/models.module';
     UsersModule,
     PostsModule,
     AuthModule,
-    ImagesModule,
-    ModelsModule
+    ImagesModule
   ],
   controllers: [AppController],
   providers: [AppService, ImagesService]

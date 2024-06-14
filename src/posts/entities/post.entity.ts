@@ -23,8 +23,8 @@ export class Post implements Post {
   @ApiProperty()
   likedBy?: { id: number }[];
 
-  // @ApiProperty()
-  // comments?: User[];
+  @ApiProperty()
+  comments?: { content: string }[];
 
   constructor({
     id,
@@ -33,8 +33,8 @@ export class Post implements Post {
     caption,
     media,
     author,
-    likedBy
-    // comments
+    likedBy,
+    comments
   }: {
     id: number;
     createdAt: Date;
@@ -43,7 +43,7 @@ export class Post implements Post {
     media?: string;
     author?: Partial<User>;
     likedBy?: { id: number }[];
-    // comments?: string[]
+    comments?: { content: string }[];
   }) {
     this.id = id;
     this.createdAt = createdAt;
@@ -51,7 +51,7 @@ export class Post implements Post {
     this.caption = caption;
     this.media = media;
     this.likedBy = likedBy;
-    // this.comments = comments;
+    this.comments = comments;
 
     if (author) {
       this.author = new User(author);

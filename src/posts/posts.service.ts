@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CommentDto, CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -20,7 +20,21 @@ export class PostsService {
             id: true
           }
         },
-        comments: true
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -38,7 +52,21 @@ export class PostsService {
             id: true
           }
         },
-        comments: true
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -55,6 +83,21 @@ export class PostsService {
         likedBy: {
           select: {
             id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
           }
         }
       }
@@ -76,6 +119,21 @@ export class PostsService {
         likedBy: {
           select: {
             id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
           }
         }
       }
@@ -134,6 +192,21 @@ export class PostsService {
         likedBy: {
           select: {
             id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
           }
         }
       },
@@ -209,5 +282,32 @@ export class PostsService {
 
     if (!user) throw new NotFoundException('User not found!');
     return user;
+  }
+
+  async getPostComments(postId: number) {
+    await this.checkIfPostExist(postId);
+    return await this.prisma.comment.findMany({
+      where: {
+        id: postId
+      }
+    });
+  }
+
+  async addComment(userId: number, postId: number, data: CommentDto) {
+    await Promise.all([this.checkIfPostExist(postId), this.checkIfUserExist(userId)]);
+
+    return await this.prisma.post.update({
+      where: {
+        id: postId
+      },
+      data: {
+        comments: {
+          create: {
+            ...data,
+            authorId: userId
+          }
+        }
+      }
+    });
   }
 }

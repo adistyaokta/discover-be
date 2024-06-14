@@ -12,7 +12,7 @@ import {
   Query
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
+import { CommentDto, CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Post as PostEntity } from './entities/post.entity';
@@ -125,5 +125,21 @@ export class PostsController {
   @ApiBearerAuth()
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new PostEntity(await this.postsService.remove(id));
+  }
+
+  @Get(':id/comments')
+  async getCommentsOfMemorie(@Param('id', ParseIntPipe) id: number) {
+    return await this.postsService.getPostComments(id);
+  }
+
+  @Post(':postId/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async addComment(
+    @GetCurrentUserId() user: number,
+    @Param('postId', ParseIntPipe) postId: number,
+    @Body() comment: CommentDto
+  ) {
+    return await this.postsService.addComment(user, postId, comment);
   }
 }
