@@ -288,7 +288,7 @@ export class PostsService {
     await this.checkIfPostExist(postId);
     return await this.prisma.comment.findMany({
       where: {
-        id: postId
+        postId: postId
       }
     });
   }

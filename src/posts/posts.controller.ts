@@ -127,7 +127,7 @@ export class PostsController {
     return new PostEntity(await this.postsService.remove(id));
   }
 
-  @Get(':id/comments')
+  @Get(':postId/comments')
   async getCommentsOfMemorie(@Param('id', ParseIntPipe) id: number) {
     return await this.postsService.getPostComments(id);
   }
