@@ -17,11 +17,21 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Post as PostEntity } from './entities/post.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { GetCurrentUser } from 'src/users/decorators/get-current-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { GetCurrentUserId } from 'src/users/decorators/get-current-userId.decorator';
 
 @Controller('posts')
 @ApiTags('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
+
+  @Post('/test')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  test(@GetCurrentUserId() user: User) {
+    console.log(user);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -80,11 +90,17 @@ export class PostsController {
   }
 
   @Post(':postId/like')
-  async likeUnlike(
-    // @Param('postId', ParseIntPipe) userId: number
-    @Param('postId', ParseIntPipe) postId: number
-  ) {
-    return this.postsService.likeUnlike(postId);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async likePost(@GetCurrentUserId() userId: number, @Param('postId', ParseIntPipe) postId: number) {
+    return await this.postsService.likePost(userId, postId);
+  }
+
+  @Delete(':postId/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async unlikePost(@GetCurrentUserId() userId: number, @Param('postId', ParseIntPipe) postId: number) {
+    return await this.postsService.unlikePost(userId, postId);
   }
 
   // @Get('/random/:count')

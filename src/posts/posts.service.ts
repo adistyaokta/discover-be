@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -15,7 +15,11 @@ export class PostsService {
     return this.prisma.post.findMany({
       include: {
         author: true,
-        likedBy: true,
+        likedBy: {
+          select: {
+            id: true
+          }
+        },
         comments: true
       }
     });
@@ -47,7 +51,12 @@ export class PostsService {
       take: 20,
       where: { authorId },
       include: {
-        author: true
+        author: true,
+        likedBy: {
+          select: {
+            id: true
+          }
+        }
       }
     });
   }
@@ -61,6 +70,11 @@ export class PostsService {
             username: true,
             avaUrl: true,
             name: true,
+            id: true
+          }
+        },
+        likedBy: {
+          select: {
             id: true
           }
         }
@@ -116,13 +130,18 @@ export class PostsService {
             name: true,
             id: true
           }
+        },
+        likedBy: {
+          select: {
+            id: true
+          }
         }
       },
       orderBy: {
         _relevance: {
           fields: ['caption'],
           search: s,
-          sort: 'desc'
+          sort: 'asc'
         }
       }
     });
@@ -136,50 +155,59 @@ export class PostsService {
     return this.prisma.post.delete({ where: { id } });
   }
 
-  async likeUnlike(postId: number) {
-    try {
-      const post = await this.prisma.post.findUnique({ where: { id: postId } });
-      if (!post) {
-        throw new Error('Moment not found');
-      }
+  async likePost(userId: number, postId: number) {
+    await Promise.all([this.checkIfPostExist(postId), this.checkIfUserExist(userId)]);
 
-      const authorId = post.authorId;
-
-      const user = await this.prisma.user.findUnique({ where: { id: authorId }, include: { likes: true } });
-      if (!user) {
-        throw new Error('User not found!');
-      }
-
-      if (user.likes.some((post) => post.id === postId)) {
-        await this.prisma.user.update({
-          where: { id: authorId },
-          data: {
-            likes: {
-              disconnect: { id: post.id }
-            }
-          }
-        });
-        return {
-          statusCode: 200,
-          message: 'You unliked a post.'
-        };
-      }
-
-      await this.prisma.user.update({
-        where: { id: authorId },
-        data: {
-          likes: {
-            connect: { id: post.id }
+    return await this.prisma.post.update({
+      where: {
+        id: postId
+      },
+      data: {
+        likedBy: {
+          connect: {
+            id: userId
           }
         }
-      });
+      }
+    });
+  }
 
-      return {
-        status: 200,
-        message: 'You liked a post.'
-      };
-    } catch (error) {
-      throw new InternalServerErrorException('Something went wrong');
-    }
+  async unlikePost(userId: number, postId: number) {
+    await Promise.all([this.checkIfPostExist(postId), this.checkIfUserExist(userId)]);
+
+    return await this.prisma.post.update({
+      where: {
+        id: postId
+      },
+      data: {
+        likedBy: {
+          disconnect: {
+            id: userId
+          }
+        }
+      }
+    });
+  }
+
+  async checkIfPostExist(postId: number) {
+    const post = await this.prisma.post.findUnique({
+      where: {
+        id: postId
+      }
+    });
+
+    if (!post) throw new NotFoundException('Post not found!');
+    return post;
+  }
+
+  async checkIfUserExist(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    });
+
+    if (!user) throw new NotFoundException('User not found!');
+    return user;
   }
 }
