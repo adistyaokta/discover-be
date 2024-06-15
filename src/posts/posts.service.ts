@@ -73,11 +73,18 @@ export class PostsService {
 
   getMostLikedPosts() {
     return this.prisma.post.findMany({
-      orderBy: {
-        likedBy: {
-          _count: 'desc'
+      orderBy: [
+        {
+          likedBy: {
+            _count: 'desc'
+          }
+        },
+        {
+          comments: {
+            _count: 'desc'
+          }
         }
-      },
+      ],
       take: 3,
       include: {
         author: true,

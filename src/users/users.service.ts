@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -31,7 +31,27 @@ export class UsersService {
   }
 
   findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        followers: {
+          select: {
+            id: true,
+            avaUrl: true,
+            username: true,
+            name: true
+          }
+        },
+        following: {
+          select: {
+            id: true,
+            avaUrl: true,
+            username: true,
+            name: true
+          }
+        }
+      }
+    });
   }
 
   async update(id: number, data: UpdateUserDto) {
@@ -58,5 +78,67 @@ export class UsersService {
 
   remove(id: number) {
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  async checkIfUserExists(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) throw new NotFoundException('User does not exist');
+
+    return user;
+  }
+
+  async follow(userId: number, followedUserId: number) {
+    const [user, followedUser] = await Promise.all([
+      await this.checkIfUserExists(userId),
+      await this.checkIfUserExists(followedUserId)
+    ]);
+
+    if (user === followedUser) {
+      throw new ForbiddenException("You cant' follow yourself");
+    }
+
+    return await this.prisma.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        following: {
+          connect: {
+            id: followedUser.id
+          }
+        }
+      },
+      select: {
+        id: true
+      }
+    });
+  }
+
+  async unfollow(userId: number, followedUserId: number) {
+    const [user, followedUser] = await Promise.all([
+      await this.checkIfUserExists(userId),
+      await this.checkIfUserExists(followedUserId)
+    ]);
+
+    if (userId === followedUserId) {
+      throw new ForbiddenException("You cant' unfollow yourself");
+    }
+
+    return await this.prisma.user.update({
+      where: {
+        id: user.id
+      },
+      data: {
+        following: {
+          disconnect: {
+            id: followedUser.id
+          }
+        }
+      },
+      select: {
+        id: true
+      }
+    });
   }
 }

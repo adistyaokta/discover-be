@@ -21,7 +21,7 @@ export class User implements User {
 
   @ApiProperty()
   @Expose()
-  email: string;
+  email?: string;
 
   @Exclude()
   password?: string;
@@ -52,8 +52,8 @@ export class User implements User {
   comments?: Comment[];
 
   @Expose()
-  following?: User[];
+  following?: Partial<User[]>;
 
   @Expose()
-  followers?: User[];
+  followers?: Partial<User[]>;
 }
