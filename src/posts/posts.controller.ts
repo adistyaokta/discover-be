@@ -33,14 +33,6 @@ export class PostsController {
     console.log(user);
   }
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiCreatedResponse({ type: PostEntity })
-  async create(@Body() createPostDto: CreatePostDto) {
-    return new PostEntity(await this.postsService.create(createPostDto));
-  }
-
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -62,6 +54,15 @@ export class PostsController {
   @Get('trending')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getMostLikedPosts() {
+    const posts = await this.postsService.getMostLikedPosts();
+    return posts.map((post) => new PostEntity(post));
+  }
+
+  @Get('search')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   async searchPost(@Query('s') s: string) {
     const posts = await this.postsService.searchPosts(s);
@@ -77,6 +78,15 @@ export class PostsController {
     return posts.map((post) => new PostEntity(post));
   }
 
+  @Get('/media')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getPostWithMedia() {
+    const posts = await this.postsService.getPostWithMedia();
+    return posts.map((post) => new PostEntity(post));
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -87,6 +97,14 @@ export class PostsController {
       throw new NotFoundException(`No Post with id ${id}`);
     }
     return post;
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiCreatedResponse({ type: PostEntity })
+  async create(@Body() createPostDto: CreatePostDto) {
+    return new PostEntity(await this.postsService.create(createPostDto));
   }
 
   @Post(':postId/like')
@@ -127,8 +145,10 @@ export class PostsController {
     return new PostEntity(await this.postsService.remove(id));
   }
 
-  @Get(':postId/comments')
-  async getCommentsOfMemorie(@Param('id', ParseIntPipe) id: number) {
+  @Get(':id/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getPostComments(@Param('id', ParseIntPipe) id: number) {
     return await this.postsService.getPostComments(id);
   }
 
@@ -141,5 +161,16 @@ export class PostsController {
     @Body() comment: CommentDto
   ) {
     return await this.postsService.addComment(user, postId, comment);
+  }
+
+  @Delete(':postId/comments/:commentId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async deleteComment(
+    @GetCurrentUserId() user: number,
+    @Param('postId', ParseIntPipe) postId: number,
+    @Param('commentId', ParseIntPipe) commentId: number
+  ) {
+    return await this.postsService.deleteComment(commentId, postId, user);
   }
 }

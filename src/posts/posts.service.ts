@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CommentDto, CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -71,6 +71,40 @@ export class PostsService {
     });
   }
 
+  getMostLikedPosts() {
+    return this.prisma.post.findMany({
+      orderBy: {
+        likedBy: {
+          _count: 'desc'
+        }
+      },
+      take: 3,
+      include: {
+        author: true,
+        likedBy: {
+          select: {
+            id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
   getPostByAuthor(authorId: number) {
     return this.prisma.post.findMany({
       orderBy: {
@@ -100,6 +134,52 @@ export class PostsService {
             }
           }
         }
+      }
+    });
+  }
+
+  async getPostWithMedia() {
+    return this.prisma.post.findMany({
+      where: {
+        NOT: {
+          media: null
+        }
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            avaUrl: true,
+            name: true,
+            id: true
+          }
+        },
+        likedBy: {
+          select: {
+            id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
   }
@@ -134,6 +214,9 @@ export class PostsService {
                 id: true
               }
             }
+          },
+          orderBy: {
+            createdAt: 'desc'
           }
         }
       }
@@ -284,6 +367,17 @@ export class PostsService {
     return user;
   }
 
+  async checkIfCommentExist(commentId: number) {
+    const comment = await this.prisma.comment.findUnique({
+      where: {
+        id: commentId
+      }
+    });
+
+    if (!comment) throw new NotFoundException('Comment not found!');
+    return comment;
+  }
+
   async getPostComments(postId: number) {
     await this.checkIfPostExist(postId);
     return await this.prisma.comment.findMany({
@@ -307,6 +401,20 @@ export class PostsService {
             authorId: userId
           }
         }
+      }
+    });
+  }
+
+  async deleteComment(commentId: number, postId: number, userId: number) {
+    const comment = await this.checkIfCommentExist(commentId);
+
+    if (comment.authorId !== userId || comment.postId !== postId) {
+      throw new ForbiddenException('Access Denied!');
+    }
+
+    return await this.prisma.comment.delete({
+      where: {
+        id: commentId
       }
     });
   }
