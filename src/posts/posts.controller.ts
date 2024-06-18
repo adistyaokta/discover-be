@@ -26,11 +26,15 @@ import { GetCurrentUserId } from 'src/users/decorators/get-current-userId.decora
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @Post('/test')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  test(@GetCurrentUserId() user: User) {
-    console.log(user);
+  // @Get('/test')
+  // test(@Query('page') page = 1, @Query('pageSize') pageSize = 10) {
+  //   return this.postsService.wedhus(page, pageSize);
+  // }
+
+  @Get('wedhus')
+  async getPosts(@Query('cursor', ParseIntPipe) cursor: number, @Query('limit') limit = 10) {
+    const posts = await this.postsService.findPosts(cursor, limit);
+    return posts;
   }
 
   @Get()

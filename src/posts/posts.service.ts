@@ -2,6 +2,8 @@ import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundE
 import { CommentDto, CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Post } from './entities/post.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
@@ -69,6 +71,47 @@ export class PostsService {
         }
       }
     });
+  }
+
+  async findPosts(cursor: number | null, limit: number): Promise<{ data: Post[]; nextCursor: number | null }> {
+    const where: Prisma.PostWhereInput = cursor ? { id: { gt: cursor } } : {};
+
+    const posts = await this.prisma.post.findMany({
+      where,
+      include: {
+        author: true,
+        likedBy: {
+          select: {
+            id: true
+          }
+        },
+        comments: {
+          select: {
+            content: true,
+            id: true,
+            createdAt: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                avaUrl: true,
+                id: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { id: 'desc' },
+      take: limit + 1
+    });
+
+    let nextCursor: number | null = null;
+    if (posts.length > limit) {
+      posts.pop();
+      nextCursor = posts[posts.length - 1]?.id ?? null;
+    }
+
+    return { data: posts, nextCursor };
   }
 
   getMostLikedPosts() {
