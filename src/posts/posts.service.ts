@@ -73,8 +73,8 @@ export class PostsService {
     });
   }
 
-  async findPosts(cursor: number | null, limit: number): Promise<{ data: Post[]; nextCursor: number | null }> {
-    const where: Prisma.PostWhereInput = cursor ? { id: { gt: cursor } } : {};
+  async getInfinitePosts(cursor: number | null, limit: number): Promise<{ data: Post[]; nextCursor: number | null }> {
+    const where: Prisma.PostWhereInput = cursor ? { id: { lt: cursor } } : {};
 
     const posts = await this.prisma.post.findMany({
       where,

@@ -31,12 +31,6 @@ export class PostsController {
   //   return this.postsService.wedhus(page, pageSize);
   // }
 
-  @Get('wedhus')
-  async getPosts(@Query('cursor', ParseIntPipe) cursor: number, @Query('limit') limit = 10) {
-    const posts = await this.postsService.findPosts(cursor, limit);
-    return posts;
-  }
-
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -53,6 +47,15 @@ export class PostsController {
   async getRecentPost() {
     const posts = await this.postsService.getRecentPost();
     return posts.map((post) => new PostEntity(post));
+  }
+
+  @Get('infinite')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity, isArray: true })
+  async getInfinitePosts(@Query('cursor', ParseIntPipe) cursor: number, @Query('limit') limit = 10) {
+    const posts = await this.postsService.getInfinitePosts(cursor, limit);
+    return posts;
   }
 
   @Get('trending')
