@@ -42,7 +42,6 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async follow(@GetCurrentUserId() user: number, @Param('followedUserId', ParseIntPipe) followedUserId: number) {
-    console.log(user, followedUserId);
     return await this.usersService.follow(user, followedUserId);
   }
 
