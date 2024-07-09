@@ -1,8 +1,8 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "discover-backend",
+  "version": "1.0.0",
+  "description": "backend project for discover!",
+  "author": "adistyaokta",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
