@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+COPY entrypoint.sh ./
+
+RUN npm install
+
+COPY . .
+
+RUN chmod +x /usr/src/app
+RUN chmod +x /usr/src/app
+
+RUN npx prisma generate --schema=/usr/src/app
+
+RUN npx prisma generate
+
+EXPOSE 3001
+
+CMD [ "npm", "run", "start:migrate:prod" ]

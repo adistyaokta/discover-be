@@ -1,16 +1,21 @@
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY entrypoint.sh ./
 
-RUN npm cache clean --force
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 COPY . .
 
-RUN npx prisma generate
+RUN chmod +x /usr/src/app
+RUN chmod +x /usr/src/app/entrypoint.sh
 
-EXPOSE 3333
+RUN npx prisma generate --schema=/usr/src/app/prisma/schema.prisma
 
-CMD [ "npm", "run", "start:migrate:prod" ]
+RUN npm run build
+
+ENTRYPOINT [ "/usr/src/app/entrypoint.sh", "npm", "run", "start:prod" ]
+
+CMD [ "npm", "run", "start:prod" ]

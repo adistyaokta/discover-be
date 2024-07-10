@@ -1,0 +1,13 @@
+version: '3.8' 
+
+services:
+  app:
+    container_name: "discover-be"
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PORT=${PORT}
+    ports:
+      - "${PORT}:${PORT}"
