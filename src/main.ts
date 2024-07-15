@@ -11,10 +11,11 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.enableCors();
 
-  const config = new DocumentBuilder().setTitle('discover! - API').setVersion('0.1').addBearerAuth().build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  if (process.env.NODE_ENV !== 'PRODUCTION') {
+    const config = new DocumentBuilder().setTitle('discover! - API').setVersion('0.1').addBearerAuth().build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
