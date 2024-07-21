@@ -54,11 +54,11 @@ export class ImagesController {
     const path = `./uploads/${folder}/${filename}`;
 
     const uploadedImage = await this.imageService.uploadImage(filename, path);
-    const baseUrl = `${process.env.HOST}:${process.env.PORT}`;
+    const baseUrl = `${process.env.BE_PATH}`;
 
     const response = {
       message: 'Image uploaded successfully',
-      filePath: `http://${baseUrl}/images/${folder}/${filename}`,
+      filePath: `${baseUrl}/images/${folder}/${filename}`,
       data: uploadedImage
     };
     return response;
